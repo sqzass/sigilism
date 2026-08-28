@@ -151,7 +151,7 @@
       }
 
       .links {
-        width: 85%;
+        width: 80%;
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -224,6 +224,51 @@
         min-height: 1rem;
       }
 
+      .dial {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        position: relative;
+        align-self: center;
+        cursor: grab;
+        touch-action: none;
+        background:
+          radial-gradient(circle closest-side, var(--panel-bg) 0 70%, transparent 71%),
+          conic-gradient(from 225deg, var(--accent) 0 var(--ang, 170.5deg), #2a2a2a var(--ang, 170.5deg) 270deg, transparent 270deg);
+      }
+      .dial:active {
+        cursor: grabbing;
+      }
+      .dial:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 4px;
+      }
+      .dial-knob {
+        position: absolute;
+        inset: 0;
+        transform: rotate(calc(225deg + var(--ang, 170.5deg)));
+      }
+      .dial-knob::before {
+        content: '';
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        width: 12px;
+        height: 12px;
+        margin-left: -6px;
+        border-radius: 50%;
+        background: var(--text-color);
+      }
+      .dial-value {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 1.4rem;
+        font-weight: 600;
+        pointer-events: none;
+      }
+
       .custom-font {
         font-family: inherit;
       }
@@ -270,16 +315,21 @@
 
       <div class="form-group">
         <label>Overlay Darkness (<span id="lbl-overlay">60</span>%)</label>
-        <input type="range" id="inp-overlay" min="0" max="95" value="60" />
+        <div class="dial" id="dial-overlay" role="slider" tabindex="0" aria-label="Overlay darkness"
+          aria-valuemin="0" aria-valuemax="95" aria-valuenow="60">
+          <div class="dial-knob"></div>
+          <span class="dial-value" id="dial-value">60</span>
+        </div>
+        <input type="range" id="inp-overlay" min="0" max="95" value="60" hidden />
       </div>
 
       <div class="form-group">
         <label>Font Style</label>
         <select id="inp-font">
-          <option value="sans-serif">Modern (Sans)</option>
+          <option value="sans">Modern (Sans)</option>
           <option value="serif">Classic (Serif)</option>
-          <option value="monospace">Code (Mono)</option>
-          <option value="'Courier New', monospace">Typewriter</option>
+          <option value="mono">Code (Mono)</option>
+          <option value="typewriter">Typewriter</option>
         </select>
       </div>
 
@@ -327,6 +377,23 @@ Discord | discord.com</textarea
       const escapeUrl = (s) => String(s).replace(/['"()\\]/g, '');
       const normalizeUrl = (url) => (!url ? '#' : /^https?:\/\//i.test(url) ? url : 'https://' + url);
 
+      // Font presets: select stores the key, the whitelist supplies the CSS stack.
+      // Legacy drafts/presets saved raw CSS values; alias them back to keys.
+      const FONTS = {
+        sans: { label: 'Modern (Sans)', stack: "'Segoe UI', system-ui, sans-serif" },
+        serif: { label: 'Classic (Serif)', stack: 'Georgia, serif' },
+        mono: { label: 'Code (Mono)', stack: "'Cascadia Code', Consolas, monospace" },
+        typewriter: { label: 'Typewriter', stack: "'Courier New', Courier, monospace" },
+      };
+      const FONT_ALIASES = {
+        'sans-serif': 'sans',
+        sans: 'sans',
+        serif: 'serif',
+        monospace: 'mono',
+        "'Courier New', monospace": 'typewriter',
+      };
+      const fontKeyFor = (v) => FONT_ALIASES[v] ?? (FONTS[v] ? v : 'sans');
+
       const parseLinks = (text) =>
         text
           .split('\n')
@@ -373,10 +440,11 @@ Discord | discord.com</textarea
         preview.bio.textContent = inputs.bio.value;
         preview.avatar.src = inputs.avatar.value;
         preview.profile.style.backgroundImage = `url('${inputs.bg.value}')`;
-        preview.profile.style.fontFamily = inputs.font.value;
+        preview.profile.style.fontFamily = FONTS[fontKeyFor(inputs.font.value)].stack;
         preview.overlay.style.background = `rgba(0,0,0,${inputs.overlay.value / 100})`;
         $('lbl-overlay').textContent = inputs.overlay.value;
         document.documentElement.style.setProperty('--accent', inputs.color.value);
+        renderDial();
 
         preview.links.innerHTML = '';
         for (const link of parseLinks(inputs.links.value)) {
@@ -407,7 +475,7 @@ Discord | discord.com</textarea
         inputs.bg.value = d.bg ?? '';
         if (/^#[0-9a-fA-F]{6}$/.test(d.accent ?? '')) inputs.color.value = d.accent;
         inputs.overlay.value = d.overlay ?? 60;
-        if (d.font) inputs.font.value = d.font;
+        if (d.font) inputs.font.value = fontKeyFor(d.font);
         inputs.links.value = (d.links ?? [])
           .map((l) => `${l.label} | ${l.url === '#' ? '' : l.url}`)
           .join('\n');
@@ -472,6 +540,60 @@ Discord | discord.com</textarea
         });
       }
 
+      // --- overlay dial ---
+      const OVERLAY_MAX = 95;
+      const SWEEP_DEG = 270; // knob travel, 0% at 7 o'clock, max at 5 o'clock
+      const quantize = (raw, step) => Math.round(raw / step) * step;
+
+      const angleToValue = (deg, step) => {
+        let a = ((deg - 135) % 360 + 360) % 360;
+        if (a > SWEEP_DEG) a = a < (360 + SWEEP_DEG) / 2 ? SWEEP_DEG : 0;
+        return Math.min(Math.max(quantize((a / SWEEP_DEG) * OVERLAY_MAX, step), 0), OVERLAY_MAX);
+      };
+
+      const dial = $('dial-overlay');
+      const dialStep = (e) => (e.ctrlKey ? 2 : e.shiftKey ? 5 : 1);
+      const pointerAngle = (e) => {
+        const r = dial.getBoundingClientRect();
+        return (Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180) / Math.PI;
+      };
+      const setOverlayValue = (v) => {
+        inputs.overlay.value = Math.min(Math.max(Math.round(v), 0), OVERLAY_MAX);
+        inputs.overlay.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      const renderDial = () => {
+        const v = Number(inputs.overlay.value) || 0;
+        dial.style.setProperty('--ang', `${(v / OVERLAY_MAX) * SWEEP_DEG}deg`);
+        $('dial-value').textContent = v;
+        dial.setAttribute('aria-valuenow', v);
+        dial.setAttribute('aria-valuetext', `${v}%`);
+      };
+
+      let dialDragging = false;
+      dial.addEventListener('pointerdown', (e) => {
+        dialDragging = true;
+        dial.setPointerCapture(e.pointerId);
+        setOverlayValue(angleToValue(pointerAngle(e), dialStep(e)));
+      });
+      dial.addEventListener('pointermove', (e) => {
+        if (dialDragging) setOverlayValue(angleToValue(pointerAngle(e), dialStep(e)));
+      });
+      dial.addEventListener('pointerup', () => (dialDragging = false));
+      dial.addEventListener('pointercancel', () => (dialDragging = false));
+
+      dial.addEventListener('keydown', (e) => {
+        const step = dialStep(e);
+        const v = Number(inputs.overlay.value) || 0;
+        const next =
+          e.key === 'ArrowRight' || e.key === 'ArrowUp' ? v + step :
+          e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? v - step :
+          e.key === 'Home' ? 0 :
+          e.key === 'End' ? OVERLAY_MAX : null;
+        if (next === null) return;
+        e.preventDefault();
+        setOverlayValue(next);
+      });
+
       refreshPresetList();
       const draft = loadJSON(DRAFT_KEY, null);
       if (draft) applyData(draft);
@@ -479,7 +601,7 @@ Discord | discord.com</textarea
 
       function buildTemplate(data) {
         const accent = /^#[0-9a-fA-F]{6}$/.test(data.accent) ? data.accent : '#6c5ce7';
-        const font = String(data.font || 'sans-serif').replace(/["'\\;{}]/g, '');
+        const fontStack = FONTS[fontKeyFor(data.font)].stack;
         const overlay = Math.min(Math.max(Number(data.overlay) || 0, 0), 95) / 100;
         const linkHtml = data.links
           .map((l) => {
@@ -497,16 +619,18 @@ Discord | discord.com</textarea
     <meta name="description" content="${escapeHtml(data.bio)}">
     <style>
         :root { --accent: ${accent}; }
+        *, *::before, *::after { box-sizing: border-box; }
         body {
             margin: 0;
             background: #000;
             color: white;
-            font-family: ${font}, sans-serif;
+            font-family: ${fontStack};
             min-height: 100vh;
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-wrap: break-word;
         }
         body::before {
             content: '';
@@ -526,7 +650,7 @@ Discord | discord.com</textarea
             width: 100%;
             max-width: 480px;
             box-sizing: border-box;
-            padding: 4rem 1.5rem 2rem;
+            padding: 4rem 1.25rem 2rem;
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -542,7 +666,7 @@ Discord | discord.com</textarea
         }
         h1 { margin: 0; font-size: 1.8rem; letter-spacing: 1px; }
         .bio { font-size: 0.95rem; color: #ddd; line-height: 1.5; max-width: 90%; margin: 0 auto; }
-        .links { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 1rem; }
+        .links { width: 80%; display: flex; flex-direction: column; gap: 12px; margin-top: 1rem; }
         .link-btn {
             display: block;
             width: 100%;
@@ -557,12 +681,13 @@ Discord | discord.com</textarea
             backdrop-filter: blur(10px);
             transition: all 0.2s ease;
         }
-        .link-btn:hover {
-            background: var(--accent);
-            border-color: var(--accent);
-            transform: scale(1.02);
+        @media (hover: hover) {
+            .link-btn:hover {
+                background: var(--accent);
+                border-color: var(--accent);
+                transform: scale(1.02);
+            }
         }
-        footer { margin-top: auto; padding: 2rem; font-size: 0.8rem; color: #666; }
     </style>
 </head>
 <body>
