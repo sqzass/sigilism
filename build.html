@@ -617,6 +617,11 @@ Discord | discord.com</textarea
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${escapeHtml(data.name)}</title>
     <meta name="description" content="${escapeHtml(data.bio)}">
+    <meta property="og:title" content="${escapeHtml(data.name)}">
+    <meta property="og:description" content="${escapeHtml(data.bio)}">
+    <meta property="og:type" content="profile">${data.avatar ? `\n    <meta property="og:image" content="${escapeHtml(data.avatar)}">` : ''}
+    <meta name="twitter:card" content="summary">
+    <meta name="theme-color" content="${accent}">
     <style>
         :root { --accent: ${accent}; }
         *, *::before, *::after { box-sizing: border-box; }
