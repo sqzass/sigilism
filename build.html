@@ -1,616 +1,629 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>sigilism PB</title>
-    <style>
-      :root {
-        --bg-color: #0a0a0a;
-        --text-color: #e0e0e0;
-        --accent: #6c5ce7;
-        --panel-bg: #151515;
-        --border: #333;
-      }
 
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: 'Segoe UI', sans-serif;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sigilism</title>
+  <style>
+    :root {
+      --bg-color: #0a0a0a;
+      --text-color: #e0e0e0;
+      --accent: #6c5ce7;
+      --panel-bg: #151515;
+      --border: #333;
+    }
 
-      body {
-        background: var(--bg-color);
-        color: var(--text-color);
-        display: flex;
-        height: 100vh;
-        overflow: hidden;
-      }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
 
-      .editor {
-        width: 40%;
-        padding: 2rem;
-        background: var(--panel-bg);
-        border-right: 1px solid var(--border);
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-      h2 {
-        margin-bottom: 0.5rem;
-        font-size: 1.2rem;
-        color: var(--accent);
-      }
+    .editor {
+      width: 40%;
+      padding: 2rem;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
 
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #888;
-      }
-      input,
-      select,
-      textarea {
-        background: #222;
-        border: 1px solid var(--border);
-        color: white;
-        padding: 0.8rem;
-        border-radius: 6px;
-        font-size: 0.9rem;
-      }
-      input:focus {
-        outline: 1px solid var(--accent);
-      }
+    h2 {
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
 
-      .preview-container {
-        width: 60%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #000;
-        position: relative;
-        background-image: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
-      }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
 
-      .phone-frame {
-        width: 375px;
-        height: 700px;
-        background: #000;
-        border: 8px solid #333;
-        border-radius: 30px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-      }
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #888;
+    }
 
-      .notch {
-        position: absolute;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 150px;
-        height: 25px;
-        background: #333;
-        border-bottom-left-radius: 12px;
-        border-bottom-right-radius: 12px;
-        z-index: 10;
-      }
+    input,
+    select,
+    textarea {
+      background: #222;
+      border: 1px solid var(--border);
+      color: white;
+      padding: 0.8rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
 
-      #live-profile {
-        width: 100%;
-        height: 100%;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 80px;
-        background-size: cover;
-        background-position: center;
-        transition: all 0.3s ease;
-        position: relative;
-      }
+    input:focus {
+      outline: 1px solid var(--accent);
+    }
 
-      #prev-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-      }
-      #live-profile > *:not(.overlay) {
-        position: relative;
-        z-index: 1;
-      }
+    .preview-container {
+      width: 60%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      position: relative;
+      background-image: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+    }
 
-      .avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        border: 3px solid var(--accent);
-        object-fit: cover;
-        margin-bottom: 1rem;
-        background: #222;
-      }
+    .phone-frame {
+      width: 375px;
+      height: 700px;
+      background: #000;
+      border: 8px solid #333;
+      border-radius: 30px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    }
 
-      .username {
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin-bottom: 0.2rem;
-      }
-      .bio {
-        font-size: 0.9rem;
-        color: #ccc;
-        text-align: center;
-        padding: 0 20px;
-        margin-bottom: 2rem;
-      }
+    .notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 25px;
+      background: #333;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      z-index: 10;
+    }
 
-      .links {
-        width: 80%;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
+    #live-profile {
+      width: 100%;
+      height: 100%;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 80px;
+      background-size: cover;
+      background-position: center;
+      transition: all 0.3s ease;
+      position: relative;
+    }
 
-      .link-btn {
-        width: 100%;
-        padding: 14px;
-        text-align: center;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: white;
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: 0.2s;
-        backdrop-filter: blur(5px);
-      }
+    #prev-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+    }
 
-      .link-btn:hover {
-        background: rgba(255, 255, 255, 0.15);
-        transform: translateY(-2px);
-      }
+    #live-profile>*:not(.overlay) {
+      position: relative;
+      z-index: 1;
+    }
 
-      .btn {
-        background: var(--accent);
-        color: white;
-        border: none;
-        padding: 1rem;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-      .btn:hover {
-        opacity: 0.9;
-      }
-      .btn.secondary {
-        background: #2a2a2a;
-        border: 1px solid var(--border);
-      }
-      .btn-sm {
-        background: #2a2a2a;
-        border: 1px solid var(--border);
-        color: var(--text-color);
-        padding: 0.45rem 0.6rem;
-        border-radius: 6px;
-        font-size: 0.78rem;
-        cursor: pointer;
-        white-space: nowrap;
-      }
-      .btn-sm:hover {
-        border-color: var(--accent);
-      }
-      .btn-sm.danger:hover {
-        border-color: #c0392b;
-        color: #e74c3c;
-      }
-      .preset-row {
-        display: flex;
-        gap: 0.4rem;
-      }
-      .preset-row select {
-        flex: 1;
-        min-width: 0;
-      }
-      .status {
-        font-size: 0.78rem;
-        color: #7f8c8d;
-        text-align: center;
-        min-height: 1rem;
-      }
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      object-fit: cover;
+      margin-bottom: 1rem;
+      background: #222;
+    }
 
-      .dial {
-        width: 110px;
-        height: 110px;
-        border-radius: 50%;
-        position: relative;
-        align-self: center;
-        cursor: grab;
-        touch-action: none;
-        background:
-          radial-gradient(circle closest-side, var(--panel-bg) 0 70%, transparent 71%),
-          conic-gradient(from 225deg, var(--accent) 0 var(--ang, 170.5deg), #2a2a2a var(--ang, 170.5deg) 270deg, transparent 270deg);
-      }
-      .dial:active {
-        cursor: grabbing;
-      }
-      .dial:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 4px;
-      }
-      .dial-knob {
-        position: absolute;
-        inset: 0;
-        transform: rotate(calc(225deg + var(--ang, 170.5deg)));
-      }
-      .dial-knob::before {
-        content: '';
-        position: absolute;
-        top: 5px;
-        left: 50%;
-        width: 12px;
-        height: 12px;
-        margin-left: -6px;
-        border-radius: 50%;
-        background: var(--text-color);
-      }
-      .dial-value {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        font-size: 1.4rem;
-        font-weight: 600;
-        pointer-events: none;
-      }
+    .username {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
 
-      .custom-font {
-        font-family: inherit;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="editor">
-      <h2>Profile Builder</h2>
+    .bio {
+      font-size: 0.9rem;
+      color: #ccc;
+      text-align: center;
+      padding: 0 20px;
+      margin-bottom: 2rem;
+    }
 
-      <div class="form-group">
-        <label>Display Name</label>
-        <input type="text" id="inp-name" placeholder="e.g. User" value="User" />
+    .links {
+      width: 80%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .link-btn {
+      width: 100%;
+      padding: 14px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: 0.2s;
+      backdrop-filter: blur(5px);
+    }
+
+    .link-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 1rem;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn.secondary {
+      background: #2a2a2a;
+      border: 1px solid var(--border);
+    }
+
+    .btn-sm {
+      background: #2a2a2a;
+      border: 1px solid var(--border);
+      color: var(--text-color);
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent);
+    }
+
+    .btn-sm.danger:hover {
+      border-color: #c0392b;
+      color: #e74c3c;
+    }
+
+    .preset-row {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .preset-row select {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .status {
+      font-size: 0.78rem;
+      color: #7f8c8d;
+      text-align: center;
+      min-height: 1rem;
+    }
+
+    .dial {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      position: relative;
+      align-self: center;
+      cursor: grab;
+      touch-action: none;
+      background:
+        radial-gradient(circle closest-side, var(--panel-bg) 0 70%, transparent 71%),
+        conic-gradient(from 225deg, var(--accent) 0 var(--ang, 170.5deg), #2a2a2a var(--ang, 170.5deg) 270deg, transparent 270deg);
+    }
+
+    .dial:active {
+      cursor: grabbing;
+    }
+
+    .dial:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .dial-knob {
+      position: absolute;
+      inset: 0;
+      transform: rotate(calc(225deg + var(--ang, 170.5deg)));
+    }
+
+    .dial-knob::before {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      width: 12px;
+      height: 12px;
+      margin-left: -6px;
+      border-radius: 50%;
+      background: var(--text-color);
+    }
+
+    .dial-value {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 1.4rem;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .custom-font {
+      font-family: inherit;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="editor">
+    <h2>Profile Builder</h2>
+
+    <div class="form-group">
+      <label>Display Name</label>
+      <input type="text" id="inp-name" placeholder="e.g. User" value="User" />
+    </div>
+
+    <div class="form-group">
+      <label>Bio</label>
+      <textarea id="inp-bio" rows="3" placeholder="Short bio...">Welcome to my page.</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Avatar URL</label>
+      <input type="text" id="inp-avatar" placeholder="https://..."
+        value="https://ui-avatars.com/api/?name=User&background=6c5ce7&color=fff" />
+    </div>
+
+    <div class="form-group">
+      <label>Background Image URL</label>
+      <input type="text" id="inp-bg" placeholder="https://..."
+        value="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop" />
+    </div>
+
+    <div class="form-group">
+      <label>Accent Color</label>
+      <input type="color" id="inp-color" value="#6c5ce7" />
+    </div>
+
+    <div class="form-group">
+      <label>Overlay Darkness (<span id="lbl-overlay">60</span>%)</label>
+      <div class="dial" id="dial-overlay" role="slider" tabindex="0" aria-label="Overlay darkness" aria-valuemin="0"
+        aria-valuemax="95" aria-valuenow="60">
+        <div class="dial-knob"></div>
+        <span class="dial-value" id="dial-value">60</span>
       </div>
+      <input type="range" id="inp-overlay" min="0" max="95" value="60" hidden />
+    </div>
 
-      <div class="form-group">
-        <label>Bio</label>
-        <textarea id="inp-bio" rows="3" placeholder="Short bio...">Welcome to my page.</textarea>
-      </div>
+    <div class="form-group">
+      <label>Font Style</label>
+      <select id="inp-font">
+        <option value="sans">Modern (Sans)</option>
+        <option value="serif">Classic (Serif)</option>
+        <option value="mono">Code (Mono)</option>
+        <option value="typewriter">Typewriter</option>
+      </select>
+    </div>
 
-      <div class="form-group">
-        <label>Avatar URL</label>
-        <input
-          type="text"
-          id="inp-avatar"
-          placeholder="https://..."
-          value="https://ui-avatars.com/api/?name=User&background=6c5ce7&color=fff"
-        />
-      </div>
-
-      <div class="form-group">
-        <label>Background Image URL</label>
-        <input
-          type="text"
-          id="inp-bg"
-          placeholder="https://..."
-          value="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop"
-        />
-      </div>
-
-      <div class="form-group">
-        <label>Accent Color</label>
-        <input type="color" id="inp-color" value="#6c5ce7" />
-      </div>
-
-      <div class="form-group">
-        <label>Overlay Darkness (<span id="lbl-overlay">60</span>%)</label>
-        <div class="dial" id="dial-overlay" role="slider" tabindex="0" aria-label="Overlay darkness"
-          aria-valuemin="0" aria-valuemax="95" aria-valuenow="60">
-          <div class="dial-knob"></div>
-          <span class="dial-value" id="dial-value">60</span>
-        </div>
-        <input type="range" id="inp-overlay" min="0" max="95" value="60" hidden />
-      </div>
-
-      <div class="form-group">
-        <label>Font Style</label>
-        <select id="inp-font">
-          <option value="sans">Modern (Sans)</option>
-          <option value="serif">Classic (Serif)</option>
-          <option value="mono">Code (Mono)</option>
-          <option value="typewriter">Typewriter</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Links (One per line: Name | URL)</label>
-        <textarea id="inp-links" rows="6" placeholder="Instagram | instagram.com">
+    <div class="form-group">
+      <label>Links (One per line: Name | URL)</label>
+      <textarea id="inp-links" rows="6" placeholder="Instagram | instagram.com">
 Instagram | instagram.com
 Twitter | twitter.com
-Discord | discord.com</textarea
-        >
-      </div>
-
-      <div class="form-group">
-        <label>Presets</label>
-        <div class="preset-row">
-          <select id="inp-preset"><option value="">- saved presets -</option></select>
-          <button class="btn-sm" id="btn-preset-save" type="button">Save</button>
-          <button class="btn-sm" id="btn-preset-load" type="button">Load</button>
-          <button class="btn-sm danger" id="btn-preset-delete" type="button">Delete</button>
-        </div>
-        <input type="text" id="inp-preset-name" placeholder="Preset name (for Save)" />
-      </div>
-
-      <button class="btn" id="btn-download" type="button">Download index.html</button>
-      <button class="btn secondary" id="btn-copy" type="button">Copy HTML</button>
-      <p class="status" id="status"></p>
+Discord | discord.com</textarea>
     </div>
 
-    <div class="preview-container">
-      <div class="phone-frame">
-        <div class="notch"></div>
-        <div id="live-profile">
-          <div class="overlay" id="prev-overlay"></div>
-          <img src="" class="avatar" id="prev-avatar" />
-          <div class="username" id="prev-name"></div>
-          <div class="bio" id="prev-bio"></div>
-          <div class="links" id="prev-links"></div>
-        </div>
+    <div class="form-group">
+      <label>Presets</label>
+      <div class="preset-row">
+        <select id="inp-preset">
+          <option value="">- saved presets -</option>
+        </select>
+        <button class="btn-sm" id="btn-preset-save" type="button">Save</button>
+        <button class="btn-sm" id="btn-preset-load" type="button">Load</button>
+        <button class="btn-sm danger" id="btn-preset-delete" type="button">Delete</button>
       </div>
+      <input type="text" id="inp-preset-name" placeholder="Preset name (for Save)" />
     </div>
 
-    <script>
-      const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-      const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ESCAPES[c]);
-      const escapeUrl = (s) => String(s).replace(/['"()\\]/g, '');
-      const normalizeUrl = (url) => (!url ? '#' : /^https?:\/\//i.test(url) ? url : 'https://' + url);
+    <button class="btn" id="btn-download" type="button">Download index.html</button>
+    <button class="btn secondary" id="btn-copy" type="button">Copy HTML</button>
+    <p class="status" id="status"></p>
+  </div>
 
-      // Font presets: select stores the key, the whitelist supplies the CSS stack.
-      // Legacy drafts/presets saved raw CSS values; alias them back to keys.
-      const FONTS = {
-        sans: { label: 'Modern (Sans)', stack: "'Segoe UI', system-ui, sans-serif" },
-        serif: { label: 'Classic (Serif)', stack: 'Georgia, serif' },
-        mono: { label: 'Code (Mono)', stack: "'Cascadia Code', Consolas, monospace" },
-        typewriter: { label: 'Typewriter', stack: "'Courier New', Courier, monospace" },
-      };
-      const FONT_ALIASES = {
-        'sans-serif': 'sans',
-        sans: 'sans',
-        serif: 'serif',
-        monospace: 'mono',
-        "'Courier New', monospace": 'typewriter',
-      };
-      const fontKeyFor = (v) => FONT_ALIASES[v] ?? (FONTS[v] ? v : 'sans');
+  <div class="preview-container">
+    <div class="phone-frame">
+      <div class="notch"></div>
+      <div id="live-profile">
+        <div class="overlay" id="prev-overlay"></div>
+        <img src="" class="avatar" id="prev-avatar" />
+        <div class="username" id="prev-name"></div>
+        <div class="bio" id="prev-bio"></div>
+        <div class="links" id="prev-links"></div>
+      </div>
+    </div>
+  </div>
 
-      const parseLinks = (text) =>
-        text
-          .split('\n')
-          .map((l) => l.trim())
-          .filter(Boolean)
-          .map((l) => {
-            const idx = l.indexOf('|');
-            return idx === -1
-              ? { label: l, url: '#' }
-              : { label: l.slice(0, idx).trim(), url: normalizeUrl(l.slice(idx + 1).trim()) };
-          });
+  <script>
+    const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ESCAPES[c]);
+    const escapeUrl = (s) => String(s).replace(/['"()\\]/g, '');
+    const normalizeUrl = (url) => (!url ? '#' : /^https?:\/\//i.test(url) ? url : 'https://' + url);
 
-      const $ = (id) => document.getElementById(id);
-      const inputs = {
-        name: $('inp-name'),
-        bio: $('inp-bio'),
-        avatar: $('inp-avatar'),
-        bg: $('inp-bg'),
-        color: $('inp-color'),
-        overlay: $('inp-overlay'),
-        font: $('inp-font'),
-        links: $('inp-links'),
-        preset: $('inp-preset'),
-        presetName: $('inp-preset-name'),
-      };
+    // Font presets: select stores the key, the whitelist supplies the CSS stack.
+    // Legacy drafts/presets saved raw CSS values; alias them back to keys.
+    const FONTS = {
+      sans: { label: 'Modern (Sans)', stack: "'Segoe UI', system-ui, sans-serif" },
+      serif: { label: 'Classic (Serif)', stack: 'Georgia, serif' },
+      mono: { label: 'Code (Mono)', stack: "'Cascadia Code', Consolas, monospace" },
+      typewriter: { label: 'Typewriter', stack: "'Courier New', Courier, monospace" },
+    };
+    const FONT_ALIASES = {
+      'sans-serif': 'sans',
+      sans: 'sans',
+      serif: 'serif',
+      monospace: 'mono',
+      "'Courier New', monospace": 'typewriter',
+    };
+    const fontKeyFor = (v) => FONT_ALIASES[v] ?? (FONTS[v] ? v : 'sans');
 
-      const preview = {
-        profile: $('live-profile'),
-        overlay: $('prev-overlay'),
-        name: $('prev-name'),
-        bio: $('prev-bio'),
-        avatar: $('prev-avatar'),
-        links: $('prev-links'),
-      };
-
-      const setStatus = (msg) => {
-        const el = $('status');
-        el.textContent = msg;
-        setTimeout(() => (el.textContent = ''), 3000);
-      };
-
-      function updatePreview() {
-        preview.name.textContent = inputs.name.value || 'User';
-        preview.bio.textContent = inputs.bio.value;
-        preview.avatar.src = inputs.avatar.value;
-        preview.profile.style.backgroundImage = `url('${inputs.bg.value}')`;
-        preview.profile.style.fontFamily = FONTS[fontKeyFor(inputs.font.value)].stack;
-        preview.overlay.style.background = `rgba(0,0,0,${inputs.overlay.value / 100})`;
-        $('lbl-overlay').textContent = inputs.overlay.value;
-        document.documentElement.style.setProperty('--accent', inputs.color.value);
-        renderDial();
-
-        preview.links.innerHTML = '';
-        for (const link of parseLinks(inputs.links.value)) {
-          const btn = document.createElement('a');
-          btn.className = 'link-btn';
-          btn.textContent = link.label;
-          btn.href = '#';
-          btn.title = link.url === '#' ? 'no URL yet' : link.url;
-          preview.links.appendChild(btn);
-        }
-      }
-
-      const collectData = () => ({
-        name: inputs.name.value,
-        bio: inputs.bio.value,
-        avatar: inputs.avatar.value.trim(),
-        bg: inputs.bg.value.trim(),
-        accent: inputs.color.value,
-        overlay: Number(inputs.overlay.value),
-        font: inputs.font.value,
-        links: parseLinks(inputs.links.value),
-      });
-
-      const applyData = (d) => {
-        inputs.name.value = d.name ?? '';
-        inputs.bio.value = d.bio ?? '';
-        inputs.avatar.value = d.avatar ?? '';
-        inputs.bg.value = d.bg ?? '';
-        if (/^#[0-9a-fA-F]{6}$/.test(d.accent ?? '')) inputs.color.value = d.accent;
-        inputs.overlay.value = d.overlay ?? 60;
-        if (d.font) inputs.font.value = fontKeyFor(d.font);
-        inputs.links.value = (d.links ?? [])
-          .map((l) => `${l.label} | ${l.url === '#' ? '' : l.url}`)
-          .join('\n');
-        updatePreview();
-      };
-
-      const DRAFT_KEY = 'sigilism.draft';
-      const PRESETS_KEY = 'sigilism.presets';
-
-      const loadJSON = (key, fallback) => {
-        try {
-          return JSON.parse(localStorage.getItem(key)) ?? fallback;
-        } catch {
-          return fallback;
-        }
-      };
-
-      function saveDraft() {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(collectData()));
-      }
-
-      const refreshPresetList = (selected = '') => {
-        const names = Object.keys(loadJSON(PRESETS_KEY, {})).sort();
-        inputs.preset.innerHTML =
-          '<option value="">- saved presets -</option>' +
-          names.map((n) => `<option${n === selected ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('');
-      };
-
-      $('btn-preset-save').addEventListener('click', () => {
-        const name = inputs.presetName.value.trim();
-        if (!name) return setStatus('Type a preset name first.');
-        const presets = loadJSON(PRESETS_KEY, {});
-        presets[name] = collectData();
-        localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
-        refreshPresetList(name);
-        setStatus(`Saved "${name}".`);
-      });
-
-      $('btn-preset-load').addEventListener('click', () => {
-        const name = inputs.preset.value;
-        const preset = loadJSON(PRESETS_KEY, {})[name];
-        if (!preset) return setStatus('Pick a saved preset first.');
-        applyData(preset);
-        saveDraft();
-        setStatus(`Loaded "${name}".`);
-      });
-
-      $('btn-preset-delete').addEventListener('click', () => {
-        const name = inputs.preset.value;
-        if (!name) return setStatus('Pick a saved preset first.');
-        const presets = loadJSON(PRESETS_KEY, {});
-        delete presets[name];
-        localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
-        refreshPresetList();
-        setStatus(`Deleted "${name}".`);
-      });
-
-      for (const key of ['name', 'bio', 'avatar', 'bg', 'color', 'overlay', 'font', 'links']) {
-        inputs[key].addEventListener('input', () => {
-          updatePreview();
-          saveDraft();
+    const parseLinks = (text) =>
+      text
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .map((l) => {
+          const idx = l.indexOf('|');
+          return idx === -1
+            ? { label: l, url: '#' }
+            : { label: l.slice(0, idx).trim(), url: normalizeUrl(l.slice(idx + 1).trim()) };
         });
+
+    const $ = (id) => document.getElementById(id);
+    const inputs = {
+      name: $('inp-name'),
+      bio: $('inp-bio'),
+      avatar: $('inp-avatar'),
+      bg: $('inp-bg'),
+      color: $('inp-color'),
+      overlay: $('inp-overlay'),
+      font: $('inp-font'),
+      links: $('inp-links'),
+      preset: $('inp-preset'),
+      presetName: $('inp-preset-name'),
+    };
+
+    const preview = {
+      profile: $('live-profile'),
+      overlay: $('prev-overlay'),
+      name: $('prev-name'),
+      bio: $('prev-bio'),
+      avatar: $('prev-avatar'),
+      links: $('prev-links'),
+    };
+
+    const setStatus = (msg) => {
+      const el = $('status');
+      el.textContent = msg;
+      setTimeout(() => (el.textContent = ''), 3000);
+    };
+
+    function updatePreview() {
+      preview.name.textContent = inputs.name.value || 'User';
+      preview.bio.textContent = inputs.bio.value;
+      preview.avatar.src = inputs.avatar.value;
+      preview.profile.style.backgroundImage = `url('${inputs.bg.value}')`;
+      preview.profile.style.fontFamily = FONTS[fontKeyFor(inputs.font.value)].stack;
+      preview.overlay.style.background = `rgba(0,0,0,${inputs.overlay.value / 100})`;
+      $('lbl-overlay').textContent = inputs.overlay.value;
+      document.documentElement.style.setProperty('--accent', inputs.color.value);
+      renderDial();
+
+      preview.links.innerHTML = '';
+      for (const link of parseLinks(inputs.links.value)) {
+        const btn = document.createElement('a');
+        btn.className = 'link-btn';
+        btn.textContent = link.label;
+        btn.href = '#';
+        btn.title = link.url === '#' ? 'no URL yet' : link.url;
+        preview.links.appendChild(btn);
       }
+    }
 
-      // --- overlay dial ---
-      const OVERLAY_MAX = 95;
-      const SWEEP_DEG = 270; // knob travel, 0% at 7 o'clock, max at 5 o'clock
-      const quantize = (raw, step) => Math.round(raw / step) * step;
+    const collectData = () => ({
+      name: inputs.name.value,
+      bio: inputs.bio.value,
+      avatar: inputs.avatar.value.trim(),
+      bg: inputs.bg.value.trim(),
+      accent: inputs.color.value,
+      overlay: Number(inputs.overlay.value),
+      font: inputs.font.value,
+      links: parseLinks(inputs.links.value),
+    });
 
-      const angleToValue = (deg, step) => {
-        let a = ((deg - 135) % 360 + 360) % 360;
-        if (a > SWEEP_DEG) a = a < (360 + SWEEP_DEG) / 2 ? SWEEP_DEG : 0;
-        return Math.min(Math.max(quantize((a / SWEEP_DEG) * OVERLAY_MAX, step), 0), OVERLAY_MAX);
-      };
+    const applyData = (d) => {
+      inputs.name.value = d.name ?? '';
+      inputs.bio.value = d.bio ?? '';
+      inputs.avatar.value = d.avatar ?? '';
+      inputs.bg.value = d.bg ?? '';
+      if (/^#[0-9a-fA-F]{6}$/.test(d.accent ?? '')) inputs.color.value = d.accent;
+      inputs.overlay.value = d.overlay ?? 60;
+      if (d.font) inputs.font.value = fontKeyFor(d.font);
+      inputs.links.value = (d.links ?? [])
+        .map((l) => `${l.label} | ${l.url === '#' ? '' : l.url}`)
+        .join('\n');
+      updatePreview();
+    };
 
-      const dial = $('dial-overlay');
-      const dialStep = (e) => (e.ctrlKey ? 2 : e.shiftKey ? 5 : 1);
-      const pointerAngle = (e) => {
-        const r = dial.getBoundingClientRect();
-        return (Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180) / Math.PI;
-      };
-      const setOverlayValue = (v) => {
-        inputs.overlay.value = Math.min(Math.max(Math.round(v), 0), OVERLAY_MAX);
-        inputs.overlay.dispatchEvent(new Event('input', { bubbles: true }));
-      };
-      const renderDial = () => {
-        const v = Number(inputs.overlay.value) || 0;
-        dial.style.setProperty('--ang', `${(v / OVERLAY_MAX) * SWEEP_DEG}deg`);
-        $('dial-value').textContent = v;
-        dial.setAttribute('aria-valuenow', v);
-        dial.setAttribute('aria-valuetext', `${v}%`);
-      };
+    const DRAFT_KEY = 'sigilism.draft';
+    const PRESETS_KEY = 'sigilism.presets';
 
-      let dialDragging = false;
-      dial.addEventListener('pointerdown', (e) => {
-        dialDragging = true;
-        dial.setPointerCapture(e.pointerId);
-        setOverlayValue(angleToValue(pointerAngle(e), dialStep(e)));
-      });
-      dial.addEventListener('pointermove', (e) => {
-        if (dialDragging) setOverlayValue(angleToValue(pointerAngle(e), dialStep(e)));
-      });
-      dial.addEventListener('pointerup', () => (dialDragging = false));
-      dial.addEventListener('pointercancel', () => (dialDragging = false));
+    const loadJSON = (key, fallback) => {
+      try {
+        return JSON.parse(localStorage.getItem(key)) ?? fallback;
+      } catch {
+        return fallback;
+      }
+    };
 
-      dial.addEventListener('keydown', (e) => {
-        const step = dialStep(e);
-        const v = Number(inputs.overlay.value) || 0;
-        const next =
-          e.key === 'ArrowRight' || e.key === 'ArrowUp' ? v + step :
-          e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? v - step :
-          e.key === 'Home' ? 0 :
-          e.key === 'End' ? OVERLAY_MAX : null;
-        if (next === null) return;
-        e.preventDefault();
-        setOverlayValue(next);
-      });
+    function saveDraft() {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(collectData()));
+    }
 
+    const refreshPresetList = (selected = '') => {
+      const names = Object.keys(loadJSON(PRESETS_KEY, {})).sort();
+      inputs.preset.innerHTML =
+        '<option value="">- saved presets -</option>' +
+        names.map((n) => `<option${n === selected ? ' selected' : ''}>${escapeHtml(n)}</option>`).join('');
+    };
+
+    $('btn-preset-save').addEventListener('click', () => {
+      const name = inputs.presetName.value.trim();
+      if (!name) return setStatus('Type a preset name first.');
+      const presets = loadJSON(PRESETS_KEY, {});
+      presets[name] = collectData();
+      localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+      refreshPresetList(name);
+      setStatus(`Saved "${name}".`);
+    });
+
+    $('btn-preset-load').addEventListener('click', () => {
+      const name = inputs.preset.value;
+      const preset = loadJSON(PRESETS_KEY, {})[name];
+      if (!preset) return setStatus('Pick a saved preset first.');
+      applyData(preset);
+      saveDraft();
+      setStatus(`Loaded "${name}".`);
+    });
+
+    $('btn-preset-delete').addEventListener('click', () => {
+      const name = inputs.preset.value;
+      if (!name) return setStatus('Pick a saved preset first.');
+      const presets = loadJSON(PRESETS_KEY, {});
+      delete presets[name];
+      localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
       refreshPresetList();
-      const draft = loadJSON(DRAFT_KEY, null);
-      if (draft) applyData(draft);
-      else updatePreview();
+      setStatus(`Deleted "${name}".`);
+    });
 
-      function buildTemplate(data) {
-        const accent = /^#[0-9a-fA-F]{6}$/.test(data.accent) ? data.accent : '#6c5ce7';
-        const fontStack = FONTS[fontKeyFor(data.font)].stack;
-        const overlay = Math.min(Math.max(Number(data.overlay) || 0, 0), 95) / 100;
-        const linkHtml = data.links
-          .map((l) => {
-            const attrs = l.url === '#' ? '' : ' target="_blank" rel="noopener noreferrer"';
-            return `            <a href="${escapeHtml(l.url)}" class="link-btn"${attrs}>${escapeHtml(l.label)}</a>`;
-          })
-          .join('\n');
+    for (const key of ['name', 'bio', 'avatar', 'bg', 'color', 'overlay', 'font', 'links']) {
+      inputs[key].addEventListener('input', () => {
+        updatePreview();
+        saveDraft();
+      });
+    }
 
-        return `<!DOCTYPE html>
+    // --- overlay dial ---
+    const OVERLAY_MAX = 95;
+    const SWEEP_DEG = 270; // knob travel, 0% at 7 o'clock, max at 5 o'clock
+    const quantize = (raw, step) => Math.round(raw / step) * step;
+
+    const angleToValue = (deg, step) => {
+      let a = ((deg - 135) % 360 + 360) % 360;
+      if (a > SWEEP_DEG) a = a < (360 + SWEEP_DEG) / 2 ? SWEEP_DEG : 0;
+      return Math.min(Math.max(quantize((a / SWEEP_DEG) * OVERLAY_MAX, step), 0), OVERLAY_MAX);
+    };
+
+    const dial = $('dial-overlay');
+    const dialStep = (e) => (e.ctrlKey ? 2 : e.shiftKey ? 5 : 1);
+    const pointerAngle = (e) => {
+      const r = dial.getBoundingClientRect();
+      return (Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180) / Math.PI;
+    };
+    const setOverlayValue = (v) => {
+      inputs.overlay.value = Math.min(Math.max(Math.round(v), 0), OVERLAY_MAX);
+      inputs.overlay.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    const renderDial = () => {
+      const v = Number(inputs.overlay.value) || 0;
+      dial.style.setProperty('--ang', `${(v / OVERLAY_MAX) * SWEEP_DEG}deg`);
+      $('dial-value').textContent = v;
+      dial.setAttribute('aria-valuenow', v);
+      dial.setAttribute('aria-valuetext', `${v}%`);
+    };
+
+    let dialDragging = false;
+    dial.addEventListener('pointerdown', (e) => {
+      dialDragging = true;
+      dial.setPointerCapture(e.pointerId);
+      setOverlayValue(angleToValue(pointerAngle(e), dialStep(e)));
+    });
+    dial.addEventListener('pointermove', (e) => {
+      if (dialDragging) setOverlayValue(angleToValue(pointerAngle(e), dialStep(e)));
+    });
+    dial.addEventListener('pointerup', () => (dialDragging = false));
+    dial.addEventListener('pointercancel', () => (dialDragging = false));
+
+    dial.addEventListener('keydown', (e) => {
+      const step = dialStep(e);
+      const v = Number(inputs.overlay.value) || 0;
+      const next =
+        e.key === 'ArrowRight' || e.key === 'ArrowUp' ? v + step :
+          e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? v - step :
+            e.key === 'Home' ? 0 :
+              e.key === 'End' ? OVERLAY_MAX : null;
+      if (next === null) return;
+      e.preventDefault();
+      setOverlayValue(next);
+    });
+
+    refreshPresetList();
+    const draft = loadJSON(DRAFT_KEY, null);
+    if (draft) applyData(draft);
+    else updatePreview();
+
+    function buildTemplate(data) {
+      const accent = /^#[0-9a-fA-F]{6}$/.test(data.accent) ? data.accent : '#6c5ce7';
+      const fontStack = FONTS[fontKeyFor(data.font)].stack;
+      const overlay = Math.min(Math.max(Number(data.overlay) || 0, 0), 95) / 100;
+      const linkHtml = data.links
+        .map((l) => {
+          const attrs = l.url === '#' ? '' : ' target="_blank" rel="noopener noreferrer"';
+          return `            <a href="${escapeHtml(l.url)}" class="link-btn"${attrs}>${escapeHtml(l.label)}</a>`;
+        })
+        .join('\n');
+
+      return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -708,30 +721,31 @@ ${linkHtml}
     </div>
 </body>
 </html>`;
+    }
+
+    $('btn-download').addEventListener('click', () => {
+      saveDraft();
+      const blob = new Blob([buildTemplate(collectData())], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus('Downloaded index.html.');
+    });
+
+    $('btn-copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(buildTemplate(collectData()));
+        setStatus('Copied to clipboard.');
+      } catch {
+        setStatus('Clipboard blocked - use Download instead.');
       }
+    });
+  </script>
+</body>
 
-      $('btn-download').addEventListener('click', () => {
-        saveDraft();
-        const blob = new Blob([buildTemplate(collectData())], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'index.html';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        setStatus('Downloaded index.html.');
-      });
-
-      $('btn-copy').addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(buildTemplate(collectData()));
-          setStatus('Copied to clipboard.');
-        } catch {
-          setStatus('Clipboard blocked - use Download instead.');
-        }
-      });
-    </script>
-  </body>
 </html>
